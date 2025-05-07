@@ -18,7 +18,7 @@ courseId:string;
 chapterId:string;
 };
 
-type formSchema = z.object({
+const formSchema = z.object({
     videoUrl: z.string().min(1),
 });
 
