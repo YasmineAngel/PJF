@@ -1,12 +1,11 @@
 "use client";
 import * as z from "zod";
 import axios from "axios";
-import { ImageIcon, Pencil, PlusCircle } from "lucide-react"; // Removed unused Router import
+import { ImageIcon, Pencil, PlusCircle } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-
 import { Course } from "@prisma/client";
 import Image from "next/image";
 import { FileUpload } from "@/components/file-upload";
@@ -16,7 +15,6 @@ interface ImageFormProps {
   courseId: string;
 }
 
-// formSchema is used as a type in onSubmit
 const formSchema = z.object({
   imageURL: z.string().min(1, { message: "Image is required" }),
 });
@@ -26,14 +24,20 @@ export const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
   const toggleEdit = () => setIsEditing((current) => !current);
   const router = useRouter();
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: { imageURL: string }) => {
     try {
-      await axios.patch(`/api/courses/${courseId}`, values);
+      // Validate the input using formSchema
+      const validatedData = formSchema.parse(values);
+      await axios.patch(`/api/courses/${courseId}`, validatedData);
       toast.success("Course updated successfully.");
       toggleEdit();
       router.refresh();
-    } catch {
-      toast.error("something went wrong");
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
@@ -42,14 +46,14 @@ export const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
       <div className="font-medium flex items-center justify-between">
         Course image
         <Button onClick={toggleEdit} variant="ghost">
-          {isEditing && <>Cancel</>}
-          {!isEditing && !initialData.imageURL && (
+          {isEditing ? (
+            <>Cancel</>
+          ) : !initialData.imageURL ? (
             <>
               <PlusCircle className="h-4 w-4 mr-2" />
               Add an image
             </>
-          )}
-          {!isEditing && initialData.imageURL && (
+          ) : (
             <>
               <Pencil className="h-4 w-4 mr-2" />
               Edit image
@@ -57,8 +61,8 @@ export const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
           )}
         </Button>
       </div>
-      {!isEditing &&
-        (!initialData.imageURL ? (
+      {!isEditing ? (
+        !initialData.imageURL ? (
           <div className="flex items-center justify-center h-60 bg-slate-200 rounded-md">
             <ImageIcon className="h-10 w-10 text-slate-500" />
           </div>
@@ -71,8 +75,8 @@ export const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
               src={initialData.imageURL}
             />
           </div>
-        ))}
-      {isEditing && (
+        )
+      ) : (
         <div>
           <FileUpload
             endpoint="courseImage"
