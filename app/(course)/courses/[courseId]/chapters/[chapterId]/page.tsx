@@ -1,28 +1,26 @@
+import { getChapter } from "@/actions/get-chapter";
+import { Banner } from "@/components/banner";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { getChapter } from "@/actions/get-chapter";
+import { VideoPlayer } from "./_components/video-player";
+import { CourseEnrollButton } from "./_components/course-enroll-button";
+import { Separator } from "@/components/ui/separator";
+import { Preview } from "@/components/preview";
+import { File, Link } from "lucide-react";
+import { CourseProgressButton } from "./_components/course-progress-button";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
 
-import { Banner } from "@/components/banner";
-import { CourseEnrollButton } from "./_components/course-enroll-button";
-import { CourseProgressButton } from "./_components/course-progress-button";
-import { VideoPlayer } from "./_components/video-player";
-import { Preview } from "@/components/preview";
-import { Separator } from "@/components/ui/separator";
-import { File, Link } from "lucide-react";
-
-interface ChapterPageProps {
-  params: {
-    courseId: string;
-    chapterId: string;
-  };
-}
-
-const ChapterIdPage = async ({ params }: ChapterPageProps) => {
+const ChapterIdPage = async ({
+  params,
+}: {
+  params: { courseId: string; chapterId: string };
+}) => {
   const { userId } = await auth();
 
-  if (!userId) return redirect("/");
+  if (!userId) {
+    return redirect("/");
+  }
 
   const {
     chapter,
@@ -38,7 +36,9 @@ const ChapterIdPage = async ({ params }: ChapterPageProps) => {
     courseId: params.courseId,
   });
 
-  if (!chapter || !course) return redirect("/");
+  if (!chapter || !course) {
+    return redirect("/");
+  }
 
   const isLocked = !chapter.isFree && !purchase;
   const completedOnEnd = !!purchase && !userProgress?.isCompleted;
@@ -50,6 +50,7 @@ const ChapterIdPage = async ({ params }: ChapterPageProps) => {
       {userProgress?.isCompleted && (
         <Banner variant="success" label="You already completed this chapter." />
       )}
+
       {isLocked && (
         <Banner
           variant="warning"
