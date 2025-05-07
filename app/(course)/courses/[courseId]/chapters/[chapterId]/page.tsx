@@ -10,7 +10,6 @@ import { File, Link } from "lucide-react";
 import { CourseProgressButton } from "./_components/course-progress-button";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
-import { NextPage } from "next";
 
 interface PageProps {
   params: {
@@ -19,9 +18,9 @@ interface PageProps {
   };
 }
 
-const ChapterIdPage: NextPage<PageProps> = async ({ params }) => {
+const ChapterIdPage = async ({ params }: PageProps) => {
   const { userId } = await auth();
-  
+
   if (!userId) {
     return redirect("/");
   }
@@ -45,17 +44,14 @@ const ChapterIdPage: NextPage<PageProps> = async ({ params }) => {
   }
 
   const isLocked = !chapter.isFree && !purchase;
-  const completedOnEnd = !!purchase && !userProgress?.isCompleted;  
+  const completedOnEnd = !!purchase && !userProgress?.isCompleted;
   const isEligible = await checkTestEligibility(userId, params.courseId);
   const test = await getCourseTest(params.courseId);
 
   return (
     <div>
       {userProgress?.isCompleted && (
-        <Banner
-          variant="success"
-          label="You already completed this chapter."
-        />
+        <Banner variant="success" label="You already completed this chapter." />
       )}
 
       {isLocked && (
@@ -80,9 +76,7 @@ const ChapterIdPage: NextPage<PageProps> = async ({ params }) => {
 
         <div>
           <div className="p-4 flex flex-col md:flex-row items-center justify-between">
-            <h2 className="text-2xl font-semibold mb-2">
-              {chapter.title}
-            </h2>
+            <h2 className="text-2xl font-semibold mb-2">{chapter.title}</h2>
             {purchase ? (
               <CourseProgressButton
                 chapterId={params.chapterId}
@@ -106,26 +100,24 @@ const ChapterIdPage: NextPage<PageProps> = async ({ params }) => {
             )}
           </div>
 
-          <Separator/>
+          <Separator />
           <div>
-            <Preview value={chapter.description!}/>
+            <Preview value={chapter.description!} />
           </div>
-          
+
           {!!attachments.length && (
             <>
               <Separator />
-              <div className="p-4">
+              <div className="p-4 space-y-2">
                 {attachments.map((attachment) => (
                   <a
                     href={attachment.url}
                     target="_blank"
                     key={attachment.id}
-                    className="flex items-center p-3 w-full bg-sky-200 border text-sky-700 rounded-md hover:underline"
+                    className="flex items-center gap-2 p-3 w-full bg-sky-200 border text-sky-700 rounded-md hover:underline"
                   >
-                    <File/>
-                    <p className="line-clamp-1">
-                      {attachment.name}
-                    </p>
+                    <File />
+                    <p className="line-clamp-1">{attachment.name}</p>
                   </a>
                 ))}
                 {isEligible && test && (
@@ -146,6 +138,6 @@ const ChapterIdPage: NextPage<PageProps> = async ({ params }) => {
       </div>
     </div>
   );
-}
- 
+};
+
 export default ChapterIdPage;
