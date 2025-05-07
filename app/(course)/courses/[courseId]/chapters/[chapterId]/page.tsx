@@ -1,8 +1,7 @@
-import { GetServerSideProps } from "next";
-import { getChapter } from "@/actions/get-chapter";
-import { Banner } from "@/components/banner";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { getChapter } from "@/actions/get-chapter";
+import { Banner } from "@/components/banner";
 import { VideoPlayer } from "./_components/video-player";
 import { CourseEnrollButton } from "./_components/course-enroll-button";
 import { Separator } from "@/components/ui/separator";
@@ -146,19 +145,6 @@ const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
       </div>
     </div>
   );
-};
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { params } = context;
-
-  return {
-    props: {
-      params: {
-        courseId: params?.courseId as string,
-        chapterId: params?.chapterId as string,
-      },
-    },
-  };
 };
 
 export default ChapterIdPage;
