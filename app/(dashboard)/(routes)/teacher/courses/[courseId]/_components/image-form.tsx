@@ -11,8 +11,6 @@ import { Course } from "@prisma/client";
 import Image from "next/image";
 import { FileUpload } from "@/components/file-upload";
 
-
-
 interface ImageFormProps {
   initialData: Course;
   courseId: string;
