@@ -1,3 +1,5 @@
+"use client"; // Add this if using client-side hooks
+
 import { getChapter } from "@/actions/get-chapter";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
@@ -10,32 +12,13 @@ import { VideoPlayer } from "./_components/video-player";
 import { CourseEnrollButton } from "./_components/course-enroll-button";
 import { CourseProgressButton } from "./_components/course-progress-button";
 import { File, Link } from "lucide-react";
-import { Metadata } from "next";
 
-type Props = {
-  params: {
-    courseId: string;
-    chapterId: string;
-  };
-};
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { userId } = auth();
-  if (!userId) return { title: "Unauthorized" };
-
-  const { chapter, course } = await getChapter({
-    userId,
-    chapterId: params.chapterId,
-    courseId: params.courseId,
-  });
-
-  return {
-    title: chapter?.title || "Chapter",
-    description: `Chapter from course: ${course?.title}`,
-  };
-}
-
-export default async function ChapterIdPage({ params }: Props) {
+// Remove any PageProps interface and use inline typing
+export default async function ChapterIdPage({
+  params,
+}: {
+  params: { courseId: string; chapterId: string };
+}) {
   const { userId } = await auth();
 
   if (!userId) {
