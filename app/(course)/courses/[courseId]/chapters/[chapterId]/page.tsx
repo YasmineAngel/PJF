@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+
 import { getChapter } from "@/actions/get-chapter";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
