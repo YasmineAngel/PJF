@@ -1,0 +1,210 @@
+// prisma/schema.prisma
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  relationMode = "prisma"
+  // uncomment next line if you use Prisma <5.10
+  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+
+model Course {
+  id          String      @id @default(uuid())
+  userId      String
+  title       String      @db.Text
+  description String?     @db.Text
+  imageURL    String?     @db.Text
+  price       Float?
+  isPublished Boolean     @default(false)
+  categoryId  String?
+  category    Category?   @relation(fields: [categoryId], references: [id])
+  chapters    Chapter[]
+  attachments Attachment[]
+  purchases   Purchase[]
+  tests       Test[]      // Added test relation
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([categoryId])
+  @@index([title])
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?   @db.Text
+  imageURL    String?   @db.Text
+  courses     Course[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  name      String
+  url       String   @db.Text
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+}
+
+model Chapter {
+  id          String      @id @default(uuid())
+  title       String
+  description String?     @db.Text
+  videoUrl    String?     @db.Text
+  position    Int
+  isPublished Boolean     @default(false)
+  isFree      Boolean     @default(false)
+  muxData     MuxData?  
+  courseId    String
+  course      Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userProgress UserProgress[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([courseId])
+}
+
+model MuxData {
+  id          String   @id @default(uuid())
+  ChapterId   String   @unique
+  assetId     String
+  playbackId  String   @unique
+  Chapter     Chapter  @relation(fields: [ChapterId], references: [id], onDelete: Cascade)
+}
+
+model UserProgress {
+  id          String   @id @default(uuid())
+  userId      String
+  chapterId   String
+  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([chapterId])
+  @@unique([userId, chapterId])
+}
+
+model Purchase {
+  id        String   @id @default(uuid())
+  userId    String
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+model StripeCustomer {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  stripeCustomerId String   @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  replies     Reply[]
+}
+
+model Reply {
+  id          String   @id @default(cuid())
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  postId      String
+  post        Post     @relation(fields: [postId], references: [id])
+  userId      String
+}
+
+// ===== NEW TEST-RELATED MODELS =====
+model Test {
+  id          String        @id @default(uuid())
+  courseId    String
+  course      Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  attempts    TestAttempt[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([courseId])
+}
+
+model Question {
+  id            String   @id @default(uuid())
+  testId        String
+  test          Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
+  text          String
+  options       Option[]
+  correctAnswer String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([testId])
+}
+
+model Option {
+  id          String   @id @default(uuid())
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([questionId])
+}
+
+model TestAttempt {
+  id          String   @id @default(uuid())
+  userId      String
+  testId      String
+  test        Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  score       Float
+  isPassed    Boolean
+  answers     Json
+  completedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([testId])
+}
+
+model Todo {
+  id        String   @id @default(uuid())
+  userId    String
+  content   String   @db.Text
+  isDone    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+model PaymentProof {
+  id            String   @id @default(cuid())
+  userId        String
+  courseId      String           // ✅ Add this
+  method        String
+  transactionId String?
+  receiptUrl    String
+  status        String           // e.g. "PENDING", "APPROVED", "REJECTED"
+  createdAt     DateTime @default(now())
+}
+
