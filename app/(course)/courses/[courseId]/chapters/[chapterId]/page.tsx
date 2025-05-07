@@ -11,14 +11,7 @@ import { CourseProgressButton } from "./_components/course-progress-button";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
 
-interface ChapterIdPageProps {
-  params: {
-    courseId: string;
-    chapterId: string;
-  };
-}
-
-const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
+const ChapterIdPage = async ({ params }: { params: { courseId: string; chapterId: string } }) => {
   const { userId } = await auth();
 
   if (!userId) {
@@ -56,10 +49,7 @@ const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
       )}
 
       {isLocked && (
-        <Banner
-          variant="warning"
-          label="You need to purchase this course to watch this chapter."
-        />
+        <Banner variant="warning" label="You need to purchase this course to watch this chapter." />
       )}
 
       <div className="flex flex-col max-w-4xl mx-auto pb-20">
@@ -91,10 +81,7 @@ const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
               />
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <CourseEnrollButton
-                  courseId={params.courseId}
-                  price={course.price!}
-                />
+                <CourseEnrollButton courseId={params.courseId} price={course.price!} />
                 <a
                   href={`/courses/${params.courseId}/baridimob-checkout`}
                   className="text-sm text-sky-700 hover:underline"
@@ -106,6 +93,7 @@ const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
           </div>
 
           <Separator />
+
           <div>
             <Preview value={chapter.description!} />
           </div>
