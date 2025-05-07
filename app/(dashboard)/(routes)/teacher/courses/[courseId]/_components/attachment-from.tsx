@@ -11,14 +11,13 @@ import { FileUpload } from "@/components/file-upload";
 import { Attachment } from "@prisma/client";
 
 interface AttachmentFormProps {
-    initialData: Course & {attachments: Attachment[]};
+    initialData: Course & { attachments: Attachment[] };
     courseId: string;
 };
 
-// Used for type inference in onSubmit
 const formSchema = z.object({
-    url: z.string().min(1),
-}) as z.ZodType<{ url: string }>;
+    url: z.string().min(1, { message: "Attachment URL is required" }),
+});
 
 export const AttachmentForm = ({
     initialData,
@@ -32,12 +31,17 @@ export const AttachmentForm = ({
 
     const onSubmit = async(values: z.infer<typeof formSchema>) => {
         try {
-            await axios.post(`/api/courses/${courseId}/attachments`, values);
-            toast.success("Course updated successfully.");
+            const validatedValues = formSchema.parse(values);
+            await axios.post(`/api/courses/${courseId}/attachments`, validatedValues);
+            toast.success("Attachment added successfully.");
             toggleEdit();
             router.refresh();
-        } catch {
-            toast.error("something went wrong");
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                toast.error(error.errors[0].message);
+            } else {
+                toast.error("Something went wrong");
+            }
         }
     };
 
@@ -48,11 +52,11 @@ export const AttachmentForm = ({
             toast.success("Attachment deleted successfully.");
             router.refresh();
         } catch {
-            toast.error("something went wrong"); 
+            toast.error("Something went wrong"); 
         } finally {
             setDeletingId(null);
         }
-    }
+    };
 
     return (
         <div className="mt-6 border bg-slate-100 rounded-md p-4">
@@ -69,14 +73,13 @@ export const AttachmentForm = ({
                     )}
                 </Button>
             </div>
-            {!isEditing && (
+            {!isEditing ? (
                 <>
-                    {initialData.attachments.length === 0 && (
+                    {initialData.attachments.length === 0 ? (
                         <p className="text-sm mt-2 text-slate-500 italic">
                             No attachments yet
                         </p>
-                    )}
-                    {initialData.attachments.length > 0 && (
+                    ) : (
                         <div className="space-y-2">
                             {initialData.attachments.map((attachment) => (
                                 <div
@@ -104,14 +107,13 @@ export const AttachmentForm = ({
                         </div>
                     )}
                 </>
-            )}
-            {isEditing && (
+            ) : (
                 <div>
                     <FileUpload
                         endpoint="courseAttachment"
                         onChange={(url) => {
                             if (url) {
-                                onSubmit({url: url});
+                                onSubmit({ url });
                             }
                         }}
                     />
@@ -122,4 +124,4 @@ export const AttachmentForm = ({
             )}
         </div>
     );
-}
+};
