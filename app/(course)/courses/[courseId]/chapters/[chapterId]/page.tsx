@@ -1,4 +1,3 @@
-import { Metadata } from "next";
 import { getChapter } from "@/actions/get-chapter";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
@@ -16,7 +15,6 @@ import { CourseProgressButton } from "./_components/course-progress-button";
 
 import { File, Link } from "lucide-react";
 
-// ✅ This is the correct signature for app directory pages
 interface PageProps {
   params: {
     courseId: string;
