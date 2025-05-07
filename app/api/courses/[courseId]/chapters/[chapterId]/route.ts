@@ -9,85 +9,83 @@ const mux = new Mux({
 });
 
 export async function DELETE(
-  req:Request,
+  req: Request,
   { params }: { params: { courseId: string; chapterId: string } }
-
 ) {
-  try{
-      const {userId} = await auth();
-      if (!userId) {
-        return new NextResponse("Unauthorized", { status: 401 });
-      }
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
 
-      const ownCourse = await db.course.findUnique({
+    const ownCourse = await db.course.findUnique({
+      where: {
+        id: params.courseId,
+        userId: userId,
+      },
+    });
+
+    if (!ownCourse) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const chapter = await db.chapter.findUnique({
+      where: {
+        id: params.chapterId,
+        courseId: params.courseId,
+      },
+    });
+
+    if (!chapter) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+
+    if (chapter.videoUrl) {
+      const existingMuxData = await db.muxData.findFirst({
         where: {
-          id: params.courseId,
-          userId: userId,
+          chapterId: params.chapterId,
         },
       });
 
-      if (!ownCourse) {
-        return new NextResponse("Unauthorized", { status: 401 });
-      }
-    const chapter = await db.chapter.findUnique(
-      {
-        where:{
-          id:params.chapterId,
-          courseId : params.courseId,
-        }
-      }
-    );
-    if (!chapter){
-      return new NextResponse("Not Found" , {status:404});
-    }
-
-    if (chapter.videoUrl) {  // Fixed typo in videolr[]
-      const existingMuxData = await db.muxData.findFirst({
-          where: {
-              ChapterId: params.chapterId,  // Fixed indentation
-          }
-      });
-  
       if (existingMuxData) {
-          await mux.video.assets.delete(existingMuxData.assetId);  // Fixed Video.Assets.del to mux.video.assets.delete
-          await db.muxData.delete({
-              where: {
-                  id: existingMuxData.id,
-              }
-          });
+        await mux.video.assets.delete(existingMuxData.assetId);
+        await db.muxData.delete({
+          where: {
+            id: existingMuxData.id,
+          },
+        });
       }
-  }
- const deletedChapter = await db.chapter.delete(
-  {
-    where:
-    {
-      id: params.chapterId
     }
-  }
- );
- const publishedChaptersInCourse = await db.chapter.findMany({
-  where: {
-      courseId: params.courseId,
-      isPublished: true,
-  }
-});
 
-if (!publishedChaptersInCourse.length) {
-  await db.course.update({
+    const deletedChapter = await db.chapter.delete({
       where: {
-          id: params.courseId,
+        id: params.chapterId,
       },
-      data: {
-          isPublished: false  // Added missing data object
-      }
-  });
-}
-return NextResponse.json(deletedChapter);
-  } catch (error){
- console.log("[CHAPTER_ID_DELETE]",error);
- return new NextResponse("Internal error", {status:500});
+    });
+
+    const publishedChaptersInCourse = await db.chapter.findMany({
+      where: {
+        courseId: params.courseId,
+        isPublished: true,
+      },
+    });
+
+    if (!publishedChaptersInCourse.length) {
+      await db.course.update({
+        where: {
+          id: params.courseId,
+        },
+        data: {
+          isPublished: false,
+        },
+      });
+    }
+
+    return NextResponse.json(deletedChapter);
+  } catch (error) {
+    console.log("[CHAPTER_ID_DELETE]", error);
+    return new NextResponse("Internal error", { status: 500 });
   }
-  
 }
 
 export async function PATCH(
@@ -126,7 +124,7 @@ export async function PATCH(
     if (values.videoUrl) {
       const existingMuxData = await db.muxData.findFirst({
         where: {
-          ChapterId: params.chapterId,
+          chapterId: params.chapterId,
         },
       });
 
@@ -139,31 +137,28 @@ export async function PATCH(
         });
       }
 
-      // Create new asset with proper typing
       const asset = await mux.video.assets.create({
-        input: [{ url: values.videoUrl }], // Array of input objects
+        input: [{ url: values.videoUrl }],
         playback_policies: ["public"],
-        test: false
-      } as any);
+        test: false,
+      });
 
-      // Get the first playback ID safely
       const playbackId = asset.playback_ids?.[0]?.id;
       if (!playbackId) {
         throw new Error("No playback ID created for the asset");
       }
 
-      // Create new muxData record with required fields
       await db.muxData.create({
         data: {
-          ChapterId: params.chapterId,
+          chapterId: params.chapterId,
           assetId: asset.id,
-          playbackId: playbackId, // Now guaranteed to be string
-        }
+          playbackId: playbackId,
+        },
       });
     }
 
     return NextResponse.json(chapter);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("[COURSES_CHAPTER_ID]", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
