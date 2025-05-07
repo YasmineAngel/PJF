@@ -1,26 +1,41 @@
 import { getChapter } from "@/actions/get-chapter";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
-
 import { Banner } from "@/components/banner";
 import { Preview } from "@/components/preview";
 import { Separator } from "@/components/ui/separator";
-
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-
 import { VideoPlayer } from "./_components/video-player";
 import { CourseEnrollButton } from "./_components/course-enroll-button";
 import { CourseProgressButton } from "./_components/course-progress-button";
-
 import { File, Link } from "lucide-react";
+import { Metadata } from "next";
 
-// Correct typing for App Router pages
-export default async function ChapterIdPage({
-  params,
-}: {
-  params: { courseId: string; chapterId: string };
-}) {
+type Props = {
+  params: {
+    courseId: string;
+    chapterId: string;
+  };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { userId } = auth();
+  if (!userId) return { title: "Unauthorized" };
+
+  const { chapter, course } = await getChapter({
+    userId,
+    chapterId: params.chapterId,
+    courseId: params.courseId,
+  });
+
+  return {
+    title: chapter?.title || "Chapter",
+    description: `Chapter from course: ${course?.title}`,
+  };
+}
+
+export default async function ChapterIdPage({ params }: Props) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -47,7 +62,6 @@ export default async function ChapterIdPage({
 
   const isLocked = !chapter.isFree && !purchase;
   const completedOnEnd = !!purchase && !userProgress?.isCompleted;
-
   const isEligible = await checkTestEligibility(userId, params.courseId);
   const test = await getCourseTest(params.courseId);
 
@@ -80,7 +94,6 @@ export default async function ChapterIdPage({
         <div>
           <div className="p-4 flex flex-col md:flex-row items-center justify-between">
             <h2 className="text-2xl font-semibold mb-2">{chapter.title}</h2>
-
             {purchase ? (
               <CourseProgressButton
                 chapterId={params.chapterId}
@@ -105,7 +118,6 @@ export default async function ChapterIdPage({
           </div>
 
           <Separator />
-
           <div>
             <Preview value={chapter.description!} />
           </div>
