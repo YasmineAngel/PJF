@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getChapter } from "@/actions/get-chapter";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
@@ -15,11 +16,15 @@ import { CourseProgressButton } from "./_components/course-progress-button";
 
 import { File, Link } from "lucide-react";
 
-const ChapterIdPage = async ({
-  params,
-}: {
-  params: { courseId: string; chapterId: string };
-}) => {
+// ✅ This is the correct signature for app directory pages
+interface PageProps {
+  params: {
+    courseId: string;
+    chapterId: string;
+  };
+}
+
+export default async function ChapterIdPage({ params }: PageProps) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -143,6 +148,4 @@ const ChapterIdPage = async ({
       </div>
     </div>
   );
-};
-
-export default ChapterIdPage;
+}
