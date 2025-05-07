@@ -7,7 +7,6 @@ import { CourseEnrollButton } from "./_components/course-enroll-button";
 import { Separator } from "@/components/ui/separator";
 import { Preview } from "@/components/preview";
 import { File, Link } from "lucide-react";
-import { CourseProgress } from "@/components/course-progress";
 import { CourseProgressButton } from "./_components/course-progress-button";
 // Add near other imports
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
