@@ -11,6 +11,12 @@ import { Course } from "@prisma/client";
 import Image from "next/image";
 import { FileUpload } from "@/components/file-upload";
 
+export type ImageFormValues = z.infer<typeof formSchema>;
+
+const formSchema = z.object({
+  imageURL: z.string().min(1, { message: "Image is required" }),
+});
+
 interface ImageFormProps {
   initialData: Course;
   courseId: string;
