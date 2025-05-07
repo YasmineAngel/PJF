@@ -90,13 +90,12 @@ export async function POST(
     // Return the session URL to redirect the user
     return NextResponse.json({ url: session.url });
 
-  } catch (error: any) {
+  } catch (error: Error) {
     console.error("[COURSE_ID_CHECKOUT_ERROR]", {
       message: error?.message,
       stack: error?.stack,
-      cause: error?.cause,
       code: error?.code,
-      full: error,
+    
     });
     return new NextResponse(
       JSON.stringify({ error: error?.message || "Internal Error" }),
