@@ -1,16 +1,19 @@
+"use client"; // Add this if using client-side hooks
+
 import { getChapter } from "@/actions/get-chapter";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
 import { Banner } from "@/components/banner";
 import { Preview } from "@/components/preview";
 import { Separator } from "@/components/ui/separator";
-import { auth } from "@clerk/nextjs"; // Correct server-side auth import
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { VideoPlayer } from "./_components/video-player";
 import { CourseEnrollButton } from "./_components/course-enroll-button";
 import { CourseProgressButton } from "./_components/course-progress-button";
 import { File, Link } from "lucide-react";
 
+// Remove any PageProps interface and use inline typing
 export default async function ChapterIdPage({
   params,
 }: {
