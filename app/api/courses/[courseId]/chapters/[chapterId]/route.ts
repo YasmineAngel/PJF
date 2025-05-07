@@ -118,7 +118,8 @@ export async function PATCH(
       },
       data: {
         ...values,
-      },
+       isPublished, // Add this if you want to update the published status
+  },
     });
 
     if (values.videoUrl) {
