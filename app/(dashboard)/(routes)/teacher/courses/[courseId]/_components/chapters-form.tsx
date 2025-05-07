@@ -74,7 +74,7 @@ const onReorder = async (updateData: { id: string; position: number }[]) => {
   toast.success("Chapters reordered successfully.");
   router.refresh();
   }
-  catch (error) {
+  catch {
     toast.error("Something went wrong while reordering chapters.");
   } finally {
     setIsUpdating(false);
