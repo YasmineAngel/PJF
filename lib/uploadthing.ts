@@ -16,7 +16,7 @@ const f = createUploadthing();
 
 export const ourFileRouter = {
   postImage: f({ image: { maxFileSize: "4MB" } }) // 4MB images for posts
-    .onUploadComplete(async ({ metadata, file }) => {
+    .onUploadComplete(async ({ file }) => {
       console.log("Upload complete for post:", file.url);
     }),
 };
