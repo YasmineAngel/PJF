@@ -1,4 +1,3 @@
-
 import { getChapter } from "@/actions/get-chapter";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
@@ -16,15 +15,12 @@ import { CourseProgressButton } from "./_components/course-progress-button";
 
 import { File, Link } from "lucide-react";
 
-// ✅ This is the correct signature for app directory pages
-interface PageProps {
-  params: {
-    courseId: string;
-    chapterId: string;
-  };
-}
-
-export default async function ChapterIdPage({ params }: PageProps) {
+// Correct typing for App Router pages
+export default async function ChapterIdPage({
+  params,
+}: {
+  params: { courseId: string; chapterId: string };
+}) {
   const { userId } = await auth();
 
   if (!userId) {
