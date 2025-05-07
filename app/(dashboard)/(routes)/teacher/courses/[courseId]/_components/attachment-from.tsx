@@ -17,7 +17,7 @@ interface AttachmentFormProps {
 courseId:string;
 };
 
-const formSchema = z.object({
+type formSchema = z.object({
     url:z.string().min(1),
 });
 
