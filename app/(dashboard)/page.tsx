@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Users, FileText, Upload, CheckCircle } from "lucide-react";
+import { BookOpen, Users, FileText, CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const Card = ({ children, className }: { children: React.ReactNode; className?: string }) => (
