@@ -77,46 +77,50 @@ export const TestForm = ({ courseId, initialData }: TestFormProps) => {
     }
   };
 
-  const handleSave = async () => {
-    try {
-      setIsLoading(true);
+ const handleSave = async () => {
+  try {
+    setIsLoading(true);
 
-      for (const q of questions) {
-        if (!q.text.trim()) {
-          throw new Error("All questions must have text");
-        }
-        if (q.options.length < 2) {
-          throw new Error("Each question must have at least 2 options");
-        }
-        if (!q.options.some(o => o.isCorrect)) {
-          throw new Error("Each question must have one correct answer");
-        }
-        for (const o of q.options) {
-          if (!o.text.trim()) {
-            throw new Error("All options must have text");
-          }
+    for (const q of questions) {
+      if (!q.text.trim()) {
+        throw new Error("All questions must have text");
+      }
+      if (q.options.length < 2) {
+        throw new Error("Each question must have at least 2 options");
+      }
+      if (!q.options.some(o => o.isCorrect)) {
+        throw new Error("Each question must have one correct answer");
+      }
+      for (const o of q.options) {
+        if (!o.text.trim()) {
+          throw new Error("All options must have text");
         }
       }
-
-      const data = {
-        questions: questions.map(q => ({
-          id: q.id,
-          text: q.text,
-          options: q.options.map(o => o.text),
-          correctAnswer: q.options.find(o => o.isCorrect)?.text || ""
-        }))
-      };
-
-      await axios.post(`/api/courses/${courseId}/test`, data);
-
-      toast.success("Quiz saved!");
-      router.refresh();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save quiz");
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+    const data = {
+      questions: questions.map(q => ({
+        id: q.id,
+        text: q.text,
+        options: q.options.map(o => o.text),
+        correctAnswer: q.options.find(o => o.isCorrect)?.text || ""
+      }))
+    };
+
+    await axios.post(`/api/courses/${courseId}/test`, data);
+
+    toast.success("Quiz saved!");
+    router.refresh();
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      toast.error(error.message);
+    } else {
+      toast.error("Failed to save quiz");
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
