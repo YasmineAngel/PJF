@@ -15,14 +15,11 @@ import { CourseProgressButton } from "./_components/course-progress-button";
 
 import { File, Link } from "lucide-react";
 
-interface ChapterPageProps {
-  params: {
-    courseId: string;
-    chapterId: string;
-  };
-}
-
-const ChapterIdPage = async ({ params }: ChapterPageProps) => {
+const ChapterIdPage = async ({
+  params,
+}: {
+  params: { courseId: string; chapterId: string };
+}) => {
   const { userId } = await auth();
 
   if (!userId) {
@@ -56,10 +53,7 @@ const ChapterIdPage = async ({ params }: ChapterPageProps) => {
   return (
     <div>
       {userProgress?.isCompleted && (
-        <Banner
-          variant="success"
-          label="You already completed this chapter."
-        />
+        <Banner variant="success" label="You already completed this chapter." />
       )}
 
       {isLocked && (
@@ -126,7 +120,7 @@ const ChapterIdPage = async ({ params }: ChapterPageProps) => {
                     key={attachment.id}
                     className="flex items-center p-3 w-full bg-sky-200 border text-sky-700 rounded-md hover:underline"
                   >
-                    <File />
+                    <File className="mr-2" />
                     <p className="line-clamp-1">{attachment.name}</p>
                   </a>
                 ))}
