@@ -17,7 +17,7 @@ interface ImageFormProps {
 }
 
 // formSchema is used as a type in onSubmit
-type formSchema = z.object({
+const formSchema = z.object({
   imageURL: z.string().min(1, { message: "Image is required" }),
 });
 
