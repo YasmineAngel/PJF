@@ -10,15 +10,16 @@ import { File, Link } from "lucide-react";
 import { CourseProgressButton } from "./_components/course-progress-button";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
+import { NextPage } from "next";
 
-interface ChapterPageProps {
+interface PageProps {
   params: {
     courseId: string;
     chapterId: string;
   };
 }
 
-const ChapterIdPage = async ({ params }: ChapterPageProps) => {
+const ChapterIdPage: NextPage<PageProps> = async ({ params }) => {
   const { userId } = await auth();
   
   if (!userId) {
