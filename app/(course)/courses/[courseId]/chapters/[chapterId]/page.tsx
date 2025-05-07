@@ -11,14 +11,14 @@ import { CourseProgressButton } from "./_components/course-progress-button";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
 
-interface ChapterIdPageProps {
+interface Props {
   params: {
     courseId: string;
     chapterId: string;
   };
 }
 
-const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
+export default async function ChapterIdPage({ params }: Props) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -138,6 +138,4 @@ const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
       </div>
     </div>
   );
-};
-
-export default ChapterIdPage;
+}
