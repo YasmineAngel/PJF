@@ -15,11 +15,7 @@ import { Actions } from "./_components/actions";
 import { ClipboardList } from "lucide-react";
 import { TestForm } from "./_components/test-form";
 
-interface CoursePageProps {
-  params: {
-    courseId: string;
-  };
-}
+
 
 const CoursePage = async (props: {
   params: Promise<{ courseId: string }>;
