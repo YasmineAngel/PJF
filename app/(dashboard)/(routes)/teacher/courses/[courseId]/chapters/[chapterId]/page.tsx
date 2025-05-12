@@ -1,4 +1,4 @@
-same here : import { db } from "@/lib/db";
+ import { db } from "@/lib/db";
 import { Categories } from "./\_components/categories";
 import { SearchInput } from "@/components/search-input";
 import { getCourses } from "@/actions/get-courses";
