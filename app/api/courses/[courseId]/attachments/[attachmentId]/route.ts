@@ -4,16 +4,16 @@ import { db } from "@/lib/db";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { courseId: string; attachmentId: string } }
+  context: { params: { courseId: string; attachmentId: string } }
 ) {
+  const { courseId, attachmentId } = context.params;
+
   try {
     const { userId } = await auth();
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
-
-    const { courseId, attachmentId } = params;
 
     const courseOwner = await db.course.findUnique({
       where: {
@@ -35,7 +35,7 @@ export async function DELETE(
 
     return NextResponse.json(attachment);
   } catch (error) {
-    console.error("ATTACHMENT_DELETE_ERROR", error);
+    console.error("[ATTACHMENT_DELETE_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
