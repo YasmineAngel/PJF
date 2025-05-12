@@ -1,4 +1,4 @@
-
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getChapter } from "@/actions/get-chapter";
 import { Banner } from "@/components/banner";
@@ -15,6 +15,8 @@ type Params = Promise<{  chapterId: string, courseId: string }>
 
 const ChapterIdPage = async (props: { params: Params }) => {
 const params = await props.params;
+    const { userId } = await auth();
+
 
   if (!userId) {
     return redirect("/");
