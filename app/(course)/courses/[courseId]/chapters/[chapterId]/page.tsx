@@ -11,7 +11,7 @@ import { CourseProgressButton } from "./_components/course-progress-button";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
 
-const ChapterIdPage = async ({ params }: any) => {
+const ChapterIdPage = async ({ params }:  Promise<any>)  => {
   const { userId } = await auth();
 
   if (!userId) {
