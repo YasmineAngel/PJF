@@ -11,8 +11,10 @@ import { CourseProgressButton } from "./_components/course-progress-button";
 import { checkTestEligibility } from "@/actions/check-test-eligitibility";
 import { getCourseTest } from "@/actions/get-course-test";
 
-const ChapterIdPage = async ({ params }:  Promise<any>)  => {
-  const { userId } = await auth();
+type Params = Promise<{  chapterId: string, courseId: string }>
+
+const ChapterIdPage = async (props: { params: Params }) => {
+const params = await props.params;
 
   if (!userId) {
     return redirect("/");
