@@ -1,18 +1,19 @@
-import { db } from "@/lib/db";
-import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
 
 export async function DELETE(
   req: NextRequest,
-  context: { params: { courseId: string; attachmentId: string } }
+  { params }: { params: { courseId: string; attachmentId: string } }
 ) {
   try {
     const { userId } = await auth();
+
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { courseId, attachmentId } = context.params;
+    const { courseId, attachmentId } = params;
 
     const courseOwner = await db.course.findUnique({
       where: {
@@ -27,8 +28,8 @@ export async function DELETE(
 
     const attachment = await db.attachment.delete({
       where: {
-        courseId,
         id: attachmentId,
+        courseId,
       },
     });
 
