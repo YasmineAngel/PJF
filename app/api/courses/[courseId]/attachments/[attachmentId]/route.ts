@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { [key: string]: string | string[] } }
+  context: { params: { courseId: string; attachmentId: string } }
 ) {
   try {
     const { userId } = await auth();
@@ -12,9 +12,7 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Type assertion since we know these will be strings
-    const courseId = params.courseId as string;
-    const attachmentId = params.attachmentId as string;
+    const { courseId, attachmentId } = context.params;
 
     const courseOwner = await db.course.findUnique({
       where: {
