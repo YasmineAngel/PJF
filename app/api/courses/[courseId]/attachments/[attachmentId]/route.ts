@@ -1,42 +1,37 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-// The DELETE function for handling requests
-export async function DELETE(req: NextRequest, context: { params: { courseId: string; attachmentId: string } }) {
-  const { courseId, attachmentId } = context.params;
+export async function DELETE
+(req\:Request ,
+{params} :{params:{courseId : string, attachmentId\:string}}
+)
+{
+try{
+const {userId}= await auth();
+if(!userId){
+return new NextResponse("Unauthorized", {status:401});
+}
+const courseOwner = await db.course.findUnique({
+where:{
+id\:params.courseId,
+userId : userId
+}
+});
 
-  try {
-    // Auth check
-    const { userId } = await auth();
+if(!courseOwner){
+return new NextResponse("Unauthorized", {status:401});  }
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+const attachment = await db.attachment.delete({
+where:{
+courseId : params.courseId,
+id\:params.attachmentId,
+}
+});
+return NextResponse.json(attachment);
+}catch (error){
+console.log("ATTACHMENT\_ID", error);
+return new NextResponse("Internal Server Error", {status:500});
 
-    // Check if user is the course owner
-    const courseOwner = await db.course.findUnique({
-      where: {
-        id: courseId,
-        userId: userId,
-      },
-    });
-
-    if (!courseOwner) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
-    // Delete the attachment
-    const attachment = await db.attachment.delete({
-      where: {
-        id: attachmentId,
-        courseId: courseId,
-      },
-    });
-
-    return NextResponse.json(attachment);
-  } catch (error) {
-    console.error("Error deleting attachment", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
-  }
+}
 }
