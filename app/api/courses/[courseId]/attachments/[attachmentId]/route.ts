@@ -34,5 +34,4 @@ return NextResponse.json(attachment);
     return new NextResponse("Internal Server Error", {status:500});
 
 }
-}  Type error: Route "app/api/courses/[courseId]/attachments/[attachmentId]/route.ts" has an invalid "DELETE" export:
-  Type "{ params: { courseId: string; attachmentId: string; }; }" is not a valid type for the function's second argument.
+} 
