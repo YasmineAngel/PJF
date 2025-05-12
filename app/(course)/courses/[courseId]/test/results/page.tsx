@@ -6,13 +6,13 @@ import { ResultsCard } from "./_components/results-card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default async function QuizResultsPage({
-  params,
-  searchParams,
-}: {
-  params: { courseId: string };
-  searchParams: { attempt?: string };
-}) {
+const QuizResultsPage = async (props: {
+  params: Promise<{ courseId: string }>;
+  searchParams: Promise<{ attempt?: string }>;
+}) => {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
+
   const { userId } = await auth();
   if (!userId || !searchParams.attempt) {
     return redirect(`/courses/${params.courseId}`);
@@ -43,4 +43,6 @@ export default async function QuizResultsPage({
       </Button>
     </div>
   );
-}
+};
+
+export default QuizResultsPage;
