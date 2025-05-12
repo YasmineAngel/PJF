@@ -3,12 +3,14 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { QuizForm } from "./_components/quiz-form";
 
-export default async function QuizPage({
-  params
-}: {
-  params: { courseId: string };
-}) {
+const QuizPage = async (
+  props: {
+    params: Promise<{ courseId: string }>;
+  }
+) => {
+  const params = await props.params;
   const { userId } = await auth();
+
   if (!userId) redirect("/");
 
   const test = await getCourseTest(params.courseId);
@@ -20,4 +22,6 @@ export default async function QuizPage({
       <QuizForm test={test} userId={userId} />
     </div>
   );
-}
+};
+
+export default QuizPage;
