@@ -1,5 +1,5 @@
  import { db } from "@/lib/db";
-import { Categories } from "@/(dashboard)/(routes)/browser/_components/categories";
+import { Categories } from "@/app/(dashboard)/(routes)/browser/_components/categories";
 import { SearchInput } from "@/components/search-input";
 import { getCourses } from "@/actions/get-courses";
 import { auth } from "@clerk/nextjs/server";
