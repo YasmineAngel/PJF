@@ -4,11 +4,12 @@ import { NextResponse } from "next/server";
 
 export async function PUT(
     req: Request,
-    { params }: { params: { courseId: string; chapterId: string } }
+    { params }: { params: Promise<{ courseId: string; chapterId: string }> }
 ) {
     try {
         const { userId } = await auth();
         const { isCompleted } = await req.json();
+        const resolvedParams = await params;
         
         if (!userId) {
             return new NextResponse("Unauthorized", { status: 401 });
@@ -18,7 +19,7 @@ export async function PUT(
             where: {
                 userId_chapterId: {
                     userId,
-                    chapterId: params.chapterId,
+                    chapterId: resolvedParams.chapterId,
                 },
             },
             update: {
@@ -26,10 +27,11 @@ export async function PUT(
             },
             create: {
                 userId,
-                chapterId: params.chapterId,
+                chapterId: resolvedParams.chapterId,
                 isCompleted,
             },
-        })
+        });
+        
         return NextResponse.json(userProgress);
     } catch (error) {
         console.log("[CHAPTER_ID_PROGRESS]", error);
