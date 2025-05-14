@@ -11,14 +11,16 @@ interface QuestionInput {
 
 export async function POST(
   req: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
     const { userId } = await auth();
+    const resolvedParams = await params;
+    
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
     const course = await db.course.findUnique({
-      where: { id: params.courseId, userId },
+      where: { id: resolvedParams.courseId, userId },
     });
     if (!course) return new NextResponse("Not found", { status: 404 });
 
@@ -26,7 +28,7 @@ export async function POST(
 
     const test = await db.$transaction(async (prisma) => {
       const createdTest = await prisma.test.create({
-        data: { courseId: params.courseId },
+        data: { courseId: resolvedParams.courseId },
       });
 
       for (const q of questions) {
@@ -43,7 +45,6 @@ export async function POST(
             options: {
               create: q.options.map((text) => ({ text })),
             },
-            // We'll resolve correctAnswer manually below
           },
         });
       }
@@ -90,22 +91,24 @@ export async function POST(
 
 export async function GET(
   req: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
     const { userId } = await auth();
+    const resolvedParams = await params;
+    
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
     const course = await db.course.findFirst({
       where: {
-        id: params.courseId,
+        id: resolvedParams.courseId,
         userId,
       },
     });
     if (!course) return new NextResponse("Not found", { status: 404 });
 
     const tests = await db.test.findMany({
-      where: { courseId: params.courseId },
+      where: { courseId: resolvedParams.courseId },
       include: {
         questions: {
           include: {
