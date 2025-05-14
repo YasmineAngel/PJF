@@ -86,15 +86,22 @@ export async function POST(
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error: any) {
-    console.error("[COURSE_ID_CHECKOUT_ERROR]", {
-      message: error?.message,
-      stack: error?.stack,
-      code: error?.code,
-    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("[COURSE_ID_CHECKOUT_ERROR]", {
+        message: error.message,
+        stack: error.stack,
+      });
 
+      return new NextResponse(
+        JSON.stringify({ error: error.message }),
+        { status: 500 }
+      );
+    }
+
+    console.error("[COURSE_ID_CHECKOUT_UNKNOWN_ERROR]", error);
     return new NextResponse(
-      JSON.stringify({ error: error?.message || "Internal Error" }),
+      JSON.stringify({ error: "Internal Error" }),
       { status: 500 }
     );
   }
