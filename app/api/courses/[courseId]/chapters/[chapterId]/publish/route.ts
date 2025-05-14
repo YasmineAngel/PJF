@@ -4,17 +4,19 @@ import { NextResponse } from "next/server";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { courseId: string; chapterId: string } }
+  { params }: { params: Promise<{ courseId: string; chapterId: string }> }
 ) {
   try {
     const { userId } = await auth();
+    const resolvedParams = await params;
+
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
     const ownCourse = await db.course.findUnique({
       where: {
-        id: params.courseId,
+        id: resolvedParams.courseId,
         userId,
       },
     });
@@ -25,14 +27,14 @@ export async function PATCH(
 
     const chapter = await db.chapter.findUnique({
       where: {
-        id: params.chapterId,
-        courseId: params.courseId,
+        id: resolvedParams.chapterId,
+        courseId: resolvedParams.courseId,
       },
     });
 
     const muxData = await db.muxData.findUnique({
       where: {
-        ChapterId: params.chapterId,
+        chapterId: resolvedParams.chapterId,
       },
     });
 
@@ -40,17 +42,16 @@ export async function PATCH(
       return new NextResponse("Missing required fields", { status: 400 });
     }
 
-    // ✅ You probably want to mark the chapter as published here:
     const publishedChapter = await db.chapter.update({
       where: {
-        id: params.chapterId,
+        id: resolvedParams.chapterId,
       },
       data: {
         isPublished: true,
       },
     });
 
-    return NextResponse.json(publishedChapter); // ✅ Return the updated chapter
+    return NextResponse.json(publishedChapter);
   } catch (error) {
     console.log("[CHAPTER_PUBLISH]", error);
     return new NextResponse("Internal Error", { status: 500 });
