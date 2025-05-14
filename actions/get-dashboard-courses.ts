@@ -13,7 +13,12 @@ type DashboardCourses = {
     coursesInProgress: CourseWithProgressWithCategory[];
 };
 
-
+type PurchaseWithCourse = {
+    course: Course & {
+        category: Category;
+        chapters: Chapter[];
+    };
+};
 
 export const getDashboardCourses = async (userId: string): Promise<DashboardCourses> => {
     try {
@@ -33,14 +38,16 @@ export const getDashboardCourses = async (userId: string): Promise<DashboardCour
                     }
                 }
             }
-        });
+        }) as PurchaseWithCourse[];
 
-        const courses = purchasedCourses.map((purchase) => purchase.course) as CourseWithProgressWithCategory[];
+        const courses = purchasedCourses.map((purchase: PurchaseWithCourse) => ({
+            ...purchase.course,
+            progress: null
+        }));
 
-      
         for (let course of courses) {
-            const progress= await getProgress(userId, course.id);
-            course["progress"] = progress;
+            const progress = await getProgress(userId, course.id);
+            course.progress = progress;
         }
 
         const completedCourses = courses.filter(course => course.progress === 100);
