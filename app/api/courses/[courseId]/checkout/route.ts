@@ -6,7 +6,7 @@ import Stripe from "stripe";
 
 export async function POST(
   req: Request,
-  { params }: { params: { courseId: string } }
+  context: { params: Promise<{ courseId: string }> }
 ) {
   try {
     const user = await currentUser();
@@ -15,9 +15,11 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    const { courseId } = await context.params;
+
     const course = await db.course.findUnique({
       where: {
-        id: params.courseId,
+        id: courseId,
         isPublished: true,
       },
     });
@@ -30,7 +32,7 @@ export async function POST(
       where: {
         userId_courseId: {
           userId: user.id,
-          courseId: params.courseId,
+          courseId,
         },
       },
     });
@@ -48,24 +50,21 @@ export async function POST(
             name: course.title,
             description: course.description!,
           },
-          unit_amount: Math.round(course.price! * 100), // converting price to cents
+          unit_amount: Math.round(course.price! * 100),
         },
       },
     ];
 
-    // Check if the user already has a Stripe customer ID
     let stripeCustomer = await db.stripeCustomer.findUnique({
       where: { userId: user.id },
       select: { stripeCustomerId: true },
     });
 
     if (!stripeCustomer) {
-      // Create a new Stripe customer if not found
       const customer = await stripe.customers.create({
         email: user.emailAddresses[0].emailAddress,
       });
 
-      // Save the new customer in your database
       stripeCustomer = await db.stripeCustomer.create({
         data: {
           userId: user.id,
@@ -74,7 +73,6 @@ export async function POST(
       });
     }
 
-    // Create a Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomer.stripeCustomerId,
       line_items,
@@ -87,16 +85,14 @@ export async function POST(
       },
     });
 
-    // Return the session URL to redirect the user
     return NextResponse.json({ url: session.url });
-
-  } catch (error: Error) {
+  } catch (error: any) {
     console.error("[COURSE_ID_CHECKOUT_ERROR]", {
       message: error?.message,
       stack: error?.stack,
       code: error?.code,
-    
     });
+
     return new NextResponse(
       JSON.stringify({ error: error?.message || "Internal Error" }),
       { status: 500 }
