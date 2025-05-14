@@ -1,5 +1,4 @@
-import { Category, Course } from "@prisma/client";
-
+import { Category, Course, Purchase } from "@prisma/client";
 import { getProgress } from "@/actions/get-progress";
 import { db } from "@/lib/db";
 
@@ -7,7 +6,6 @@ type CourseWithProgressWithCategory = Course & {
     category: Category | null;
     chapters: { id: string }[];
     progress: number | null;
-
 };
 
 type GetCourses = {
@@ -20,59 +18,58 @@ export const getCourses = async ({
     userId,
     title,
     categoryId
-} : GetCourses) : Promise<CourseWithProgressWithCategory[]> => {
+}: GetCourses): Promise<CourseWithProgressWithCategory[]> => {
     try {
         const courses = await db.course.findMany({
-            where:{
-                isPublished:true ,
-                title :{
-                    contains : title,
+            where: {
+                isPublished: true,
+                title: {
+                    contains: title,
                 },
                 categoryId,
             },
-            include : {
-                category:true ,
-                chapters:{
-                    where:{
-                        isPublished:true,
+            include: {
+                category: true,
+                chapters: {
+                    where: {
+                        isPublished: true,
                     },
-                    select :{
-                        id:true,
-
+                    select: {
+                        id: true,
                     }
                 },
-                purchases:{
-                    where:{
+                purchases: {
+                    where: {
                         userId,
                     }
                 }
             },
-            orderBy:{
-                createdAt : "desc",
+            orderBy: {
+                createdAt: "desc",
             }
         });
 
-        const CourseWithProgress : CourseWithProgressWithCategory[] = await Promise.all(
-            courses.map(async course =>{
-               if(course.purchases.length === 0) {
-                return{
-                    ...course,
-                    progress: null,
+        const CourseWithProgress: CourseWithProgressWithCategory[] = await Promise.all(
+            courses.map(async (course: Course & { purchases: Purchase[] }) => {
+                if (course.purchases.length === 0) {
+                    return {
+                        ...course,
+                        progress: null,
+                    };
                 }
-               }
 
-               const progressPercentage = await getProgress(userId,course.id)
+                const progressPercentage = await getProgress(userId, course.id);
 
-               return {
-                ...course,
-                progress: progressPercentage,
-               };
+                return {
+                    ...course,
+                    progress: progressPercentage,
+                };
             })
         );
-        return  CourseWithProgress;
+
+        return CourseWithProgress;
+    } catch (error) {
+        console.log("[GET_COURSES]", error);
+        return [];
     }
-    catch (error) {
-    console.log("[GET_COURSES]", error);
-    return[];
-    }
-}
+};
