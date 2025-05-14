@@ -1,20 +1,21 @@
 import { Menu } from "lucide-react";
-import { Chapter, Course, UserProgress } from "@prisma/client";
-
+import { Chapter, Course, UserProgress, Test } from "@prisma/client";
 import {
     Sheet,
     SheetContent,
     SheetTrigger
 } from "@/components/ui/sheet";
+import { CourseSidebar } from "./course-sidebar";
 
-import {CourseSidebar} from "./course-sidebar"
+interface CourseWithChaptersAndTests extends Course {
+    chapters: (Chapter & {
+        userProgress: UserProgress[] | null;
+    })[];
+    tests: Test[];
+}
 
 interface CourseMobileSidebarProps {
-    course: Course & {
-        chapters: (Chapter & {
-            userProgress: UserProgress[] | null;
-        })[];
-    };
+    course: CourseWithChaptersAndTests;
     progressCount: number;
 }
 
