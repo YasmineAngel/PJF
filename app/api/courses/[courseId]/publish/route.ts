@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 export async function PATCH(
-  req: Request,  // Fixed typo from 'reg' to 'req'
-  { params }: { params: { courseId: string } }
+  req: Request,
+  context: { params: Promise<{ courseId: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -12,42 +12,53 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-   
+    const { courseId } = await context.params;
+
     const course = await db.course.findUnique({
-        where: {
-          id: params.courseId,
-          userId,
+      where: {
+        id: courseId,
+        userId,
+      },
+      include: {
+        chapters: {
+          include: {
+            muxData: true,
+          },
         },
-        include: {
-          chapters: {
-            include: {
-              muxData: true,
-            }
-          }
-        }
-      });
-      if (!course) {
-        return new NextResponse("Not found", { status: 404 });
-      }
-      const hasPublishedChapter = course.chapters.some((chapter) => chapter.isPublished);
+      },
+    });
 
-if (!course.title || !course.description || !course.imageURL || !course.categoryId || !hasPublishedChapter) {
-  return new NextResponse("Missing required fields", { status: 401 });
-}
-  const publishedCourse = await db.course.update({
-    where: {
-      id: params.courseId,
-      userId,
-    },
-    data: {
-      isPublished: true,
+    if (!course) {
+      return new NextResponse("Not found", { status: 404 });
     }
-  });
-  
-  return NextResponse.json(publishedCourse);
 
+    const hasPublishedChapter = course.chapters.some(
+      (chapter) => chapter.isPublished
+    );
+
+    if (
+      !course.title ||
+      !course.description ||
+      !course.imageURL ||
+      !course.categoryId ||
+      !hasPublishedChapter
+    ) {
+      return new NextResponse("Missing required fields", { status: 401 });
+    }
+
+    const publishedCourse = await db.course.update({
+      where: {
+        id: courseId,
+        userId,
+      },
+      data: {
+        isPublished: true,
+      },
+    });
+
+    return NextResponse.json(publishedCourse);
   } catch (error) {
-    console.log("[COURSE_ID_PUBLISH]", error);
+    console.error("[COURSE_ID_PUBLISH]", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }

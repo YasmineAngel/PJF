@@ -1,6 +1,6 @@
 "use client";
-import { useState, useMemo, useCallback } from "react";
-import { EditorState, ContentState, convertFromHTML, convertToRaw } from "draft-js";
+import { useState, useCallback } from "react";
+import { EditorState, ContentState } from "draft-js";
 import { Editor as DraftEditor } from "draft-js";
 import "draft-js/dist/Draft.css"; // Import Draft.js CSS
 

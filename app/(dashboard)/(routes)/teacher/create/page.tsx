@@ -5,7 +5,6 @@ import axios from "axios" ;
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { title } from "process";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -60,7 +59,7 @@ const onSubmit = async(values: zod.infer<typeof formSchema>) => {
                 Name your course !
             </h1>
          <p className="text-sm text-slate-600">
-         what would you like to name your course ? Don't worry you can change it later.
+         what would you like to name your course ? Do not worry you can change it later.
         </p>
         <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 mt-8">

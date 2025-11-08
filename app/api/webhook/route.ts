@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 
 export async function POST(req: Request) {
     const body = await req.text();
-    const signature = (await headers()).get("Stripe-Signature") as string;
+    const signature = headers().get("Stripe-Signature") as string;
 
     let event: Stripe.Event;
 
@@ -16,8 +16,14 @@ export async function POST(req: Request) {
             signature,
             process.env.STRIPE_WEBHOOK_SECRET!
         );
-    } catch (error: any) {
-        return new NextResponse(`Webhook error, ${error.message}`, { status: 400 });
+    } catch (error) {
+        let errorMessage = "Unknown error occurred";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        } else if (typeof error === "string") {
+            errorMessage = error;
+        }
+        return new NextResponse(`Webhook error: ${errorMessage}`, { status: 400 });
     }
     
     const session = event.data.object as Stripe.Checkout.Session;
@@ -29,17 +35,20 @@ export async function POST(req: Request) {
             return new NextResponse(`Webhook Error: Missing metadata`, { status: 400 });
         }
 
-        // Record the purchase in the database
-        await db.purchase.create({
-            data: { 
-                courseId: courseId,
-                userId: userId,
-            },
-        });
-
-        console.log("Purchase created:", userId, courseId);
+        try {
+            await db.purchase.create({
+                data: { 
+                    courseId: courseId,
+                    userId: userId,
+                },
+            });
+            console.log("Purchase created:", userId, courseId);
+        } catch (dbError) {
+            console.error("Database error:", dbError);
+            return new NextResponse(`Database error`, { status: 500 });
+        }
     } else {
-        return new NextResponse(`Webhook Error: Unhandled event type ${event.type}`, { status: 200 });
+        return new NextResponse(`Unhandled event type ${event.type}`, { status: 200 });
     }
     
     return new NextResponse(null, { status: 200 });

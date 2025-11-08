@@ -3,38 +3,39 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 export async function PATCH(
-  req: Request,  // Fixed typo from 'reg' to 'req'
-  { params }: { params: { courseId: string } }
+  req: Request,
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
     const { userId } = await auth();
+    const resolvedParams = await params;
+
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-   
     const course = await db.course.findUnique({
-        where: {
-          id: params.courseId,
-          userId,
-        },
-      });
-      if (!course) {
-        return new NextResponse("Not found", { status: 404 });
-      }
+      where: {
+        id: resolvedParams.courseId,
+        userId,
+      },
+    });
 
-
-  const unpublishedCourse = await db.course.update({
-    where: {
-      id: params.courseId,
-      userId,
-    },
-    data: {
-      isPublished: false,
+    if (!course) {
+      return new NextResponse("Not found", { status: 404 });
     }
-  });
-  
-  return NextResponse.json(unpublishedCourse);
+
+    const unpublishedCourse = await db.course.update({
+      where: {
+        id: resolvedParams.courseId,
+        userId,
+      },
+      data: {
+        isPublished: false,
+      }
+    });
+
+    return NextResponse.json(unpublishedCourse);
 
   } catch (error) {
     console.log("[COURSE_ID_UNPUBLISH]", error);

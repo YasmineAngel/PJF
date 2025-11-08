@@ -1,11 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
 
-
-const UserButtonWrapper = dynamic(() => import('@/components/UserButtonWrapper'), {
-  ssr: false,
-});
 
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";

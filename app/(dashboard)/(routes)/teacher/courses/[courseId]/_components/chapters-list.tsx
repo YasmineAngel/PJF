@@ -10,7 +10,7 @@ import {
 } from "@hello-pangea/dnd";
 
 import { cn } from "@/lib/utils";
-import { Divide, Grip } from "lucide-react";
+import { Grip } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Pencil } from "lucide-react";
 

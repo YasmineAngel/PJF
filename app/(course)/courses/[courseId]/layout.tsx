@@ -57,9 +57,7 @@ const CourseLayout = async ({
 
   const progressCount = await getProgress(userId, course.id);
 
-  const allChaptersCompleted = course.chapters.every((chapter) =>
-    chapter.userProgress?.[0]?.isCompleted
-  );
+
 
   return (
     <div className="h-full">

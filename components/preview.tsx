@@ -2,7 +2,7 @@
 
 import { EditorState, ContentState } from "draft-js";
 import { Editor } from "draft-js";
-import { useMemo, useState, useEffect } from "react";
+import {  useState, useEffect } from "react";
 
 interface PreviewProps {
   value: string;

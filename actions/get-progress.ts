@@ -1,38 +1,41 @@
 import { db } from "@/lib/db";
 
+interface ChapterId {
+  id: string;
+}
+
 export const getProgress = async (
-    userId: string,
-    courseId: string,
+  userId: string,
+  courseId: string,
 ): Promise<number> => {
-    try {
+  try {
     const publishedChapters = await db.chapter.findMany({
-    where: {
-    courseId: courseId,
-    isPublished: true,
-    },
-    select: {
-    id: true,
-    }
+      where: {
+        courseId: courseId,
+        isPublished: true,
+      },
+      select: {
+        id: true,
+      }
     });
 
-    const publishedChapterIds = publishedChapters.map((chapter) => chapter.id);
+    const publishedChapterIds = publishedChapters.map((chapter: ChapterId) => chapter.id);
 
     const validCompletedChapters = await db.userProgress.count({
-        where: {
+      where: {
         userId: userId,
         chapterId: {
-        in: publishedChapterIds,
+          in: publishedChapterIds,
         },
-        isCompleted: true ,
-        }
+        isCompleted: true,
+      }
     });
 
-    const progressPercentage = (validCompletedChapters/publishedChapterIds.length)*100;
+    const progressPercentage = (validCompletedChapters / publishedChapterIds.length) * 100;
     return progressPercentage;
 
-
-}catch (error) {
+  } catch (error) {
     console.log("[GET_PROGRESS]", error);
     return 0;
-}
-}
+  }
+};

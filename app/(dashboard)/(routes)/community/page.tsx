@@ -3,6 +3,13 @@ import ReplyForm from "./reply-form";
 import prisma from "@/lib/prismadb";
 import { currentUser } from "@clerk/nextjs/server";
 
+type ClerkUser = {
+  id: string;
+  image_url: string;
+  first_name?: string;
+  username?: string;
+};
+
 export default async function CommunityPage() {
   const posts = await prisma.post.findMany({
     orderBy: {
@@ -17,10 +24,8 @@ export default async function CommunityPage() {
     },
   });
 
-  // Get current user
   const user = await currentUser();
 
-  // Extract all unique user IDs from posts and replies
   const userIds = Array.from(
     new Set([
       ...posts.map(post => post.userId),
@@ -28,8 +33,7 @@ export default async function CommunityPage() {
     ])
   );
 
-  // Fetch user data from Clerk in a single batch
-  const clerkUsers = await fetch(
+  const clerkUsers: ClerkUser[] = await fetch(
     `https://api.clerk.com/v1/users?user_ids=${userIds.join(',')}`,
     {
       headers: {
@@ -38,9 +42,8 @@ export default async function CommunityPage() {
     }
   ).then(res => res.json());
 
-  // Create a map of user data for easy lookup
-  const usersMap = new Map<string, any>();
-  clerkUsers.forEach((clerkUser: any) => {
+  const usersMap = new Map<string, { imageUrl: string; name: string }>();
+  clerkUsers.forEach((clerkUser) => {
     usersMap.set(clerkUser.id, {
       imageUrl: clerkUser.image_url,
       name: clerkUser.first_name || clerkUser.username || "Anonymous"
@@ -108,7 +111,6 @@ export default async function CommunityPage() {
                 })}
               </div>
 
-              {/* REPLY FORM */}
               {user && <ReplyForm postId={post.id} className="mt-3" />}
             </div>
           );

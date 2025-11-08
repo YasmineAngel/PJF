@@ -1,61 +1,84 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client"; 
 import { db } from "@/lib/db";
+
+// Define the expected shape of question input
+interface QuestionInput {
+  text: string;
+  options: string[];
+  correctAnswer: string; // should match one of the options
+}
 
 export async function POST(
   req: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
     const { userId } = await auth();
+    const resolvedParams = await params;
+    
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
-    // 1. Verify course ownership
     const course = await db.course.findUnique({
-      where: { id: params.courseId, userId },
+      where: { id: resolvedParams.courseId, userId },
     });
     if (!course) return new NextResponse("Not found", { status: 404 });
 
-    // 2. Parse input (expects correctAnswer = Option ID)
-    const { questions } = await req.json();
+    const { questions }: { questions: QuestionInput[] } = await req.json();
 
-    // 3. Create Test + Questions in a transaction
     const test = await db.$transaction(async (prisma) => {
-      // Create the Test first
-      const test = await prisma.test.create({
-        data: { courseId: params.courseId },
+      const createdTest = await prisma.test.create({
+        data: { courseId: resolvedParams.courseId },
       });
 
-      // Process each Question
       for (const q of questions) {
-        // Create ALL options first (to get their IDs)
-        const options = await Promise.all(
-          q.options.map((text: string) =>
-            prisma.option.create({
-              data: { text, questionId: "" }, // Temp empty questionId
-            })
-          )
-        );
+        // Validate that correctAnswer exists in options
+        if (!q.options.includes(q.correctAnswer)) {
+          throw new Error(`Correct answer "${q.correctAnswer}" not in options for question "${q.text}"`);
+        }
 
-        // Find the correct Option ID
-        const correctOption = options.find((opt) => opt.text === q.correctAnswer);
-        if (!correctOption) throw new Error("Correct answer not found in options");
-
-        // Create Question with correctAnswer = Option ID
+        // Create question with nested options
         await prisma.question.create({
           data: {
-            testId: test.id,
+            testId: createdTest.id,
             text: q.text,
-            correctAnswer: correctOption.id, // ✅ Store OPTION ID (not text)
-            options: { connect: options.map((opt) => ({ id: opt.id })) },
+            options: {
+              create: q.options.map((text) => ({ text })),
+            },
           },
         });
       }
 
+      // Fetch all questions just created with their options
+      const fullTest = await prisma.test.findUnique({
+        where: { id: createdTest.id },
+        include: {
+          questions: { include: { options: true } },
+        },
+      });
+
+      // Set correct answer now that option IDs are known
+      if (!fullTest) throw new Error("Test creation failed");
+
+      for (const question of fullTest.questions) {
+        const correctOption = question.options.find(
+          (opt) => opt.text === questions.find((q) => q.text === question.text)?.correctAnswer
+        );
+        if (!correctOption) throw new Error("Correct option not found");
+
+        await prisma.question.update({
+          where: { id: question.id },
+          data: { correctAnswer: correctOption.id },
+        });
+      }
+
       return prisma.test.findUnique({
-        where: { id: test.id },
-        include: { questions: { include: { options: true } } },
+        where: { id: createdTest.id },
+        include: {
+          questions: {
+            include: { options: true },
+          },
+        },
       });
     });
 
@@ -65,33 +88,39 @@ export async function POST(
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
+
 export async function GET(
   req: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
     const { userId } = await auth();
+    const resolvedParams = await params;
+    
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
-    const tests = await db.test.findMany({
+    const course = await db.course.findFirst({
       where: {
-        courseId: params.courseId,
-        course: {
-          userId
-        }
+        id: resolvedParams.courseId,
+        userId,
       },
+    });
+    if (!course) return new NextResponse("Not found", { status: 404 });
+
+    const tests = await db.test.findMany({
+      where: { courseId: resolvedParams.courseId },
       include: {
         questions: {
           include: {
-            options: true
-          }
-        }
-      }
+            options: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json(tests);
   } catch (error) {
-    console.log("[TESTS_GET]", error);
+    console.error("[TESTS_GET]", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }

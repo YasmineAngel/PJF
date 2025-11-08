@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Users, FileText, Upload, CheckCircle } from "lucide-react";
+import { BookOpen, Users, FileText, CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const Card = ({ children, className }: { children: React.ReactNode; className?: string }) => (
@@ -120,21 +120,4 @@ function DashboardCard({ icon, title, count, description, href, color }: Dashboa
   );
 }
 
-type ActivityItemProps = {
-  title: string;
-  description: string;
-  time: string;
-};
 
-function ActivityItem({ title, description, time }: ActivityItemProps) {
-  return (
-    <div className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition">
-      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" />
-      <div>
-        <h4 className="font-medium text-gray-800">{title}</h4>
-        <p className="text-sm text-gray-600">{description}</p>
-        <p className="text-xs text-gray-400 mt-1">{time}</p>
-      </div>
-    </div>
-  );
-}
